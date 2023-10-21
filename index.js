@@ -80,6 +80,7 @@ app.use(
 );
 
 app.get("/", (req, res) => {
+  console.log("遠端服務器連線");
   res.send("首頁測試");
 });
 

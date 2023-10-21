@@ -15,6 +15,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 router.get("/helpers/testURL", (req, res) => {
+  console.log("成功測試");
   return res.send("部署server端route測試");
 });
 router.get("/helpers/famous", (req, res) => {
@@ -367,7 +368,9 @@ router.get("/helpers/detail/petInfo", (req, res) => {
     (err, results) => {
       if (err) {
         console.log(err);
-        return res.status(500).send({ status: 500, msg: "伺服器查詢錯誤" });
+        return res
+          .status(500)
+          .send({ status: 500, msg: "伺服器查詢錯誤", err });
       }
       return res.send({ status: 200, data: results });
     }
