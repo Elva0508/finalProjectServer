@@ -1,6 +1,7 @@
 const mysql = require("mysql2");
 const connection = require("./db");
 const express = require("express");
+const port = process.env.port || 3005;
 const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -86,7 +87,7 @@ app.get("/login", (req, res) => {
   res.send("登入頁面測試");
 });
 
-app.listen(3005, () => {
+app.listen(port, () => {
   console.log("server is running");
 });
 
