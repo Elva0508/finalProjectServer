@@ -14,7 +14,9 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
-
+router.get("/helpers/testURL", (req, res) => {
+  return res.send("部署server端route測試");
+});
 router.get("/helpers/famous", (req, res) => {
   const { type } = req.query;
 
