@@ -29,7 +29,6 @@ router.get("/helper", async (req, res) => {
       (err, results) => {
         if (err) {
           console.log(err);
-
           reject({ status: 500, data: "資料庫查詢失敗" });
         }
         resolve(results);
@@ -360,17 +359,25 @@ router.get("/reserve", (req, res) => {
 router.get("/reserve/review", (req, res) => {
   const { case_id } = req.query;
   conn.execute(
-    `SELECT r.*,u.cover_photo,u.name ,COUNT(*) AS review_count FROM mission_helper_reviews r LEFT JOIN userinfo u ON u.user_id = r.user_id WHERE request_id = ?`,
-    [case_id],
+    `SELECT r.*, u.cover_photo, u.name
+    FROM mission_helper_reviews r
+    LEFT JOIN userinfo u ON u.user_id = r.user_id
+    WHERE r.request_id = ${case_id}`,
+
     (err, result) => {
       if (err) {
         console.log(err);
         return res.status(500).send("資料庫查詢錯誤");
       }
-      result = result.map((item) => {
-        return { ...item, review_date: transferDate(item.review_date) };
-      });
-      console.log(result);
+      console.log("374", result);
+      if (result.length > 0) {
+        result[0] = {
+          ...result[0],
+          review_date: transferDate(result[0].review_date),
+          review_count: result.length,
+        };
+      }
+      console.log("381", result[0]);
       return res.send({ status: 200, data: result[0] });
     }
   );

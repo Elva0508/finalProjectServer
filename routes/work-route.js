@@ -27,8 +27,7 @@ router.get("/helpers/famous", (req, res) => {
       // 思路：從review表開始join三張表，首先review表利用子查詢篩選出每個helper擁有的review數量高低的排序，再用這筆資料去join helper資料表的helper資料及userinfo資料表的cover_photo
 
       // `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count,r.total_star FROM mission_helper_info h LEFT JOIN(SELECT helper_id, SUM(star_rating)  AS total_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? AND review_count > 1 AND total_star > 4 ORDER BY review_count DESC`(在srver端算平均數)
-      `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN(SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? AND r.average_star > 4.5 ORDER BY review_count DESC  LIMIT ?`,
-      [1, 10],
+      `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN(SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1 AND r.average_star > 4.5 ORDER BY review_count DESC  LIMIT 10`,
       (err, result) => {
         if (err) {
           console.log(err);
@@ -47,8 +46,7 @@ router.get("/helpers/famous", (req, res) => {
   } else {
     // 依類型篩選
     conn.execute(
-      `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN(SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? AND h.${type}_service = ? AND r.average_star > 4.5 ORDER BY review_count DESC  LIMIT ?`,
-      [1, true, 10],
+      `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN(SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1 AND h.${type}_service = true AND r.average_star > 4.5 ORDER BY review_count DESC  LIMIT 10`,
       (err, result) => {
         if (err) {
           console.log(err);
@@ -73,8 +71,8 @@ router.get("/helpers/order", async (req, res) => {
     try {
       totalRows = await new Promise((resolve, reject) => {
         return conn.execute(
-          `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ?`,
-          [1],
+          `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1`,
+
           (err, results) => {
             if (err) {
               console.log(err);
@@ -92,8 +90,7 @@ router.get("/helpers/order", async (req, res) => {
     if (orderType === "price") {
       // 依服務價格排序
       conn.execute(
-        `SELECT h.*,u.cover_photo,u.cat_helper,r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN (SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ?  ORDER by h.feed_price ${orderWay} LIMIT ?,?`,
-        [1, limitRows, pageSize],
+        `SELECT h.*,u.cover_photo,u.cat_helper,r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN (SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1  ORDER by h.feed_price ${orderWay} LIMIT ${limitRows},${pageSize}`,
         (err, result) => {
           if (err) {
             console.log(err);
@@ -105,8 +102,8 @@ router.get("/helpers/order", async (req, res) => {
     } else if (orderType === "hot") {
       // 依熱門程度排序
       conn.execute(
-        `SELECT h.*,u.cover_photo,u.cat_helper,r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN (SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r  ON h.user_id = r.helper_id  LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? ORDER by r.review_count ${orderWay} LIMIT ?,?`,
-        [1, limitRows, pageSize],
+        `SELECT h.*,u.cover_photo,u.cat_helper,r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN (SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r  ON h.user_id = r.helper_id  LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1 ORDER by r.review_count ${orderWay} LIMIT ${limitRows},${pageSize}`,
+
         (err, result) => {
           if (err) {
             console.log(err);
@@ -126,9 +123,9 @@ router.get("/helpers/order", async (req, res) => {
       GROUP BY helper_id
     ) r ON h.user_id = r.helper_id
     LEFT JOIN userinfo u ON h.user_id = u.user_id
-    WHERE u.cat_helper = ? ORDER BY average_star ${orderWay}
-    LIMIT ?,?`,
-        [1, limitRows, pageSize],
+    WHERE u.cat_helper = 1 ORDER BY average_star ${orderWay}
+    LIMIT ${limitRows},${pageSize}`,
+
         (err, result) => {
           if (err) {
             console.log(err);
@@ -143,8 +140,8 @@ router.get("/helpers/order", async (req, res) => {
     try {
       totalRows = await new Promise((resolve, reject) => {
         return conn.execute(
-          `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? AND ${filterType}_service = ?`,
-          [1, 1],
+          `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1 AND ${filterType}_service = 1`,
+
           (err, results) => {
             if (err) {
               reject({ status: 500, error: "查詢錯誤" });
@@ -160,8 +157,7 @@ router.get("/helpers/order", async (req, res) => {
     if (orderType === "price") {
       // 依服務價格排序
       conn.execute(
-        `SELECT h.*,u.cover_photo,u.cat_helper,r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN (SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? AND ${filterType}_service= ? ORDER by h.${filterType}_price ${orderWay} LIMIT ?,?`,
-        [1, 1, limitRows, pageSize],
+        `SELECT h.*,u.cover_photo,u.cat_helper,r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN (SELECT helper_id, SUM(star_rating) /  COUNT(*) AS average_star , COUNT(*) AS review_count FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1 AND ${filterType}_service= 1 ORDER by h.${filterType}_price ${orderWay} LIMIT ${limitRows},${pageSize}`,
         (err, result) => {
           if (err) {
             console.log(err);
@@ -194,10 +190,9 @@ router.get("/helpers/order", async (req, res) => {
           GROUP BY helper_id
         ) r ON h.user_id = r.helper_id
         LEFT JOIN userinfo u ON h.user_id = u.user_id
-        WHERE u.cat_helper = ? AND ${filterType}_service= ?
+        WHERE u.cat_helper = 1 AND ${filterType}_service= 1
         ORDER BY average_star ${orderWay}
-        LIMIT ?,?`,
-        [1, 1, limitRows, pageSize],
+        LIMIT ${limitRows},${pageSize}`,
         (err, result) => {
           if (err) {
             console.log(err);
@@ -221,26 +216,25 @@ router.get("/helper/orderAndFilter", (req, res) => {
 
 router.get("/helpers/search", async (req, res) => {
   const { search } = req.query;
-  // console.log(search);
+  console.log(search);
   let totalRows;
-  try {
-    totalRows = await new Promise((resolve, reject) => {
-      return conn.execute(
-        `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON u.user_id=h.user_id WHERE u.cat_helper = ? AND (h.name LIKE ? OR h.email LIKE ? OR h.phone LIKE ?)`,
-        [1, `%${search}%`, `%${search}%`, `%${search}%`],
-        (err, results) => {
-          if (err) {
-            reject({ status: 500, error: "查詢錯誤" });
+  if (search) {
+    try {
+      totalRows = await new Promise((resolve, reject) => {
+        return conn.execute(
+          `SELECT COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON u.user_id = h.user_id WHERE u.cat_helper = 1 AND (h.name LIKE '%${search}%' OR h.email LIKE '%${search}%' OR h.phone LIKE '%${search}%')`,
+          (err, results) => {
+            if (err) {
+              console.log(err);
+              reject({ status: 500, error: "查詢錯誤" });
+            }
+            console.log(results);
+            resolve(results[0].totalRows);
           }
-          resolve(results[0].totalRows);
-        }
-      );
-    });
-  } catch (e) {
-    console.log(e);
-  }
-  conn.execute(
-    `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count, r.average_star
+        );
+      });
+      conn.execute(
+        `SELECT h.*, u.cover_photo,u.cat_helper, r.review_count, r.average_star
     FROM mission_helper_info h
     LEFT JOIN (
       SELECT helper_id, SUM(star_rating) / COUNT(*) AS average_star, COUNT(*) AS review_count
@@ -248,17 +242,22 @@ router.get("/helpers/search", async (req, res) => {
       GROUP BY helper_id
     ) r ON h.user_id = r.helper_id
     LEFT JOIN userinfo u ON h.user_id = u.user_id
-    WHERE u.cat_helper = ? AND (h.name LIKE ? OR h.email LIKE ? OR h.phone LIKE ?)
-    LIMIT ?, ?`,
-    [1, `%${search}%`, `%${search}%`, `%${search}%`, 0, 18],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        return false;
-      }
-      return res.send({ status: 200, data: result, totalRows });
+    WHERE u.cat_helper = 1 AND (h.name LIKE '%${search}%' OR h.email LIKE '%${search}%' OR h.phone LIKE '%${search}%')
+    LIMIT 0, 18`,
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return false;
+          }
+          return res.send({ status: 200, data: result, totalRows });
+        }
+      );
+    } catch (e) {
+      console.log(e);
     }
-  );
+  } else {
+    return res.status(400).send("傳送參數錯誤");
+  }
 });
 
 router.get("/helpers/favorite", async (req, res) => {
@@ -305,9 +304,8 @@ router.get("/helpers", (req, res) => {
   let totalRows;
   if (type === "all") {
     conn.execute(
-      "SELECT u.cat_helper, COUNT(*) AS totalRows FROM `mission_helper_info` h LEFT JOIN userinfo u ON u.user_id=h.user_id WHERE u.cat_helper = ?",
+      "SELECT u.cat_helper, COUNT(*) AS totalRows FROM `mission_helper_info` h LEFT JOIN userinfo u ON u.user_id=h.user_id WHERE u.cat_helper = ? GROUP BY u.cat_helper",
       [1],
-
       (err, results) => {
         // 先查詢總筆數
         if (err) {
@@ -319,8 +317,7 @@ router.get("/helpers", (req, res) => {
 
         // 篩資料
         conn.execute(
-          "SELECT h.*,u.cover_photo, u.cat_helper, r.review_count,r.average_star FROM `mission_helper_info` h LEFT JOIN `userinfo` u ON h.user_id = u.user_id LEFT JOIN (SELECT helper_id ,COUNT(*) AS review_count , SUM(star_rating) /  COUNT(*) AS average_star FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id WHERE u.cat_helper = ? LIMIT ?,?",
-          [1, limitRows, pageSize],
+          `SELECT h.*,u.cover_photo, u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id LEFT JOIN (SELECT helper_id ,COUNT(*) AS review_count , SUM(star_rating) /  COUNT(*) AS average_star FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id WHERE u.cat_helper = 1 LIMIT ${limitRows},${pageSize}`,
           (err, result) => {
             // 一次只撈18筆資料
             if (err) {
@@ -335,8 +332,8 @@ router.get("/helpers", (req, res) => {
   } else if (type) {
     // 依類型篩選
     conn.execute(
-      `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = ? AND ${type}_service = ?`,
-      [1, 1],
+      `SELECT u.cat_helper, COUNT(*) AS totalRows FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id WHERE u.cat_helper = 1 AND ${type}_service = 1`,
+
       (err, results) => {
         if (err) {
           console.log(err);
@@ -345,8 +342,8 @@ router.get("/helpers", (req, res) => {
         totalRows = results[0].totalRows;
 
         conn.execute(
-          `SELECT  h.*,u.cover_photo, u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id LEFT JOIN (SELECT helper_id ,COUNT(*) AS review_count , SUM(star_rating) /  COUNT(*) AS average_star FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id WHERE h.${type}_service= ? AND u.cat_helper = ? LIMIT ?,?`,
-          [1, 1, limitRows, pageSize],
+          `SELECT  h.*,u.cover_photo, u.cat_helper, r.review_count,r.average_star FROM mission_helper_info h LEFT JOIN userinfo u ON h.user_id = u.user_id LEFT JOIN (SELECT helper_id ,COUNT(*) AS review_count , SUM(star_rating) /  COUNT(*) AS average_star FROM mission_helper_reviews GROUP BY helper_id) r ON h.user_id = r.helper_id WHERE h.${type}_service= 1 AND u.cat_helper = 1 LIMIT ${limitRows},${pageSize}`,
+
           (err, result) => {
             if (err) {
               console.log(err);
@@ -399,8 +396,7 @@ router.get("/helpers/detail/review", async (req, res) => {
       });
       const reviews = await new Promise((resolve, reject) => {
         conn.execute(
-          `SELECT r.*,u.cover_photo,u.name FROM mission_helper_reviews r LEFT JOIN userinfo u ON r.user_id = u.user_id WHERE r.helper_id = ? LIMIT ?,?`,
-          [uid, limitRows, pageSize],
+          `SELECT r.*,u.cover_photo,u.name FROM mission_helper_reviews r LEFT JOIN userinfo u ON r.user_id = u.user_id WHERE r.helper_id = ${uid} LIMIT ${limitRows},${pageSize}`,
           (err, result) => {
             if (err) {
               console.log(err);
@@ -433,8 +429,7 @@ router.get("/helpers/detail/review", async (req, res) => {
       });
       const reviews = await new Promise((resolve, reject) => {
         conn.execute(
-          `SELECT r.*,u.cover_photo,u.name FROM mission_helper_reviews r LEFT JOIN userinfo u ON r.user_id = u.user_id WHERE r.helper_id = ? AND star_rating = ? LIMIT ?,?`,
-          [uid, star, limitRows, pageSize],
+          `SELECT r.*,u.cover_photo,u.name FROM mission_helper_reviews r LEFT JOIN userinfo u ON r.user_id = u.user_id WHERE r.helper_id = ${uid} AND star_rating = ${star} LIMIT ${limitRows},${pageSize}`,
           (err, result) => {
             if (err) {
               console.log(err);
@@ -567,22 +562,8 @@ router.post("/helpers/request", (req, res) => {
   const total = subtotal * days * time * frequency;
   const oid = generateOrderNumber();
   conn.execute(
-    "INSERT INTO `mission_req_orders` (`case_id`,oid, `customer_userId`, `start_day`, `end_day`, `pet_info_id`, `helper_userId`, `service_type`, `service_time`, `frequency`, `note`,`location`, `subtotal_price`, `total_price`, `status`) VALUES (NULL,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '1')",
-    [
-      oid,
-      customer_id,
-      startDay,
-      endDay,
-      pet_id,
-      helper_id,
-      service_type,
-      time,
-      frequency,
-      note,
-      location,
-      subtotal,
-      total,
-    ],
+    `INSERT INTO mission_req_orders (case_id,oid, customer_userId, start_day, end_day,pet_info_id, helper_userId, service_type, service_time, frequency, note,location, subtotal_price, total_price, status) VALUES (NULL,'${oid}', ${customer_id}, '${startDay}','${endDay}', ${pet_id}, ${helper_id}, '${service_type}', ${time}, ${frequency}, '${note}', '${location}', ${subtotal}, ${total}, '1')`,
+
     (err, results) => {
       if (err) {
         console.log(err);
