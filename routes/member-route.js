@@ -378,10 +378,9 @@ router.get("/reserve/review", async (req, res) => {
         };
       }
       console.log("381", result[0]);
-      // return res.send({ status: 200, data: result[0] });
-      return res.json({ status: 200, msg: "測試連線" });
     }
   );
+  return res.send({ status: 200, data: result[0] });
 });
 router.post("/reserve/review", (req, res) => {
   const { case_id, user_id, helper_id, review_content, star_rating } = req.body;
