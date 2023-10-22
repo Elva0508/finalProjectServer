@@ -358,6 +358,7 @@ router.get("/reserve", (req, res) => {
 });
 router.get("/reserve/review", async (req, res) => {
   const { case_id } = req.query;
+  let data;
   conn.execute(
     `SELECT r.*, u.cover_photo, u.name
     FROM mission_helper_reviews r
@@ -371,16 +372,16 @@ router.get("/reserve/review", async (req, res) => {
       }
       console.log("374", result);
       if (result.length > 0) {
-        result[0] = {
+        data = {
           ...result[0],
           review_date: transferDate(result[0].review_date),
           review_count: result.length,
         };
       }
-      console.log("381", result[0]);
+      console.log("381", data);
     }
   );
-  return res.send({ status: 200, data: result[0] });
+  return res.send({ status: 200, data: data });
 });
 router.post("/reserve/review", (req, res) => {
   const { case_id, user_id, helper_id, review_content, star_rating } = req.body;
