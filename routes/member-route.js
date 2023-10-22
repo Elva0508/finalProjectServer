@@ -367,43 +367,52 @@ router.get("/reserve", (req, res) => {
 });
 router.get("/reserve/review", async (req, res) => {
   const { case_id } = req.query;
-  let data;
-  pool.getConnection(async function (err, conn) {
-    new Promise((resolve, reject) => {
+
+  try {
+    const conn = await pool.getConnection();
+    const result = await new Promise((resolve, reject) => {
       conn.query(
         `SELECT r.*, u.cover_photo, u.name
-      FROM mission_helper_reviews r
-      LEFT JOIN userinfo u ON u.user_id = r.user_id
-      WHERE r.request_id = ${case_id}`,
-
+        FROM mission_helper_reviews r
+        LEFT JOIN userinfo u ON u.user_id = r.user_id
+        WHERE r.request_id = ${case_id}`,
         (err, result) => {
           if (err) {
             console.log(err);
-            resolve("資料庫查詢錯誤x87x87x8x78x7x8x7");
-            // return res.status(500).send("資料庫查詢錯誤x87x87x8x78x7x8x7");
+            reject("資料庫查詢錯誤在promise中");
           }
-          console.log("374", result);
-          if (result.length > 0) {
-            data = {
-              ...result[0],
-              review_date: transferDate(result[0].review_date),
-              review_count: result.length,
-            };
-          }
-          console.log("381", data);
-          resolve(data);
+          resolve(result);
         }
       );
     });
 
-    pool.releaseConnection(conn);
-  });
-  return res.send({
-    status: 200,
-    data: data,
-    test: "data是" + data,
-    msg: "成功取得資料庫",
-  });
+    if (result.length > 0) {
+      const data = {
+        ...result[0],
+        review_date: transferDate(result[0].review_date),
+        review_count: result.length,
+      };
+      return res.send({
+        status: 200,
+        data,
+        test: "data是" + data,
+        msg: "成功取得資料庫",
+      });
+    } else {
+      return res.send({
+        status: 200,
+        data: {},
+        msg: "沒有找到相關資料",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("資料庫查詢錯誤");
+  } finally {
+    if (conn) {
+      conn.release(); // 释放数据库连接
+    }
+  }
 });
 router.post("/reserve/review", (req, res) => {
   const { case_id, user_id, helper_id, review_content, star_rating } = req.body;
