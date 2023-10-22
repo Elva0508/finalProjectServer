@@ -1,4 +1,13 @@
 const router = require("express").Router();
+const mysql = require("mysql2");
+const pool = mysql.createPool({
+  connectionLimit: 10, // 最大连接数
+  host: "35.221.205.131",
+  port: 3306,
+  user: "root",
+  password: "12345",
+  database: "cat",
+});
 const dayjs = require("dayjs");
 const conn = require("../db");
 const multer = require("multer");
@@ -359,29 +368,33 @@ router.get("/reserve", (req, res) => {
 router.get("/reserve/review", async (req, res) => {
   const { case_id } = req.query;
   let data;
-  conn.execute(
-    `SELECT r.*, u.cover_photo, u.name
+  pool.getConnection(function (err, conn) {
+    conn.query(
+      `SELECT r.*, u.cover_photo, u.name
     FROM mission_helper_reviews r
     LEFT JOIN userinfo u ON u.user_id = r.user_id
     WHERE r.request_id = ${case_id}`,
 
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("資料庫查詢錯誤x87x87x8x78x7x8x7");
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("資料庫查詢錯誤x87x87x8x78x7x8x7");
+        }
+        console.log("374", result);
+        if (result.length > 0) {
+          data = {
+            ...result[0],
+            review_date: transferDate(result[0].review_date),
+            review_count: result.length,
+          };
+        }
+        console.log("381", data);
       }
-      console.log("374", result);
-      if (result.length > 0) {
-        data = {
-          ...result[0],
-          review_date: transferDate(result[0].review_date),
-          review_count: result.length,
-        };
-      }
-      console.log("381", data);
-    }
-  );
-  return res.send({ status: 200, data: data });
+    );
+    pool.releaseConnection(conn);
+  });
+
+  return res.send({ status: 200, data: data, msg: "成功取得資料庫" });
 });
 router.post("/reserve/review", (req, res) => {
   const { case_id, user_id, helper_id, review_content, star_rating } = req.body;
