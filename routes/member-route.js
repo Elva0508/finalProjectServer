@@ -389,12 +389,11 @@ router.get("/reserve/review", async (req, res) => {
           };
         }
         console.log("381", data);
+        return res.send({ status: 200, data: data, msg: "成功取得資料庫" });
       }
     );
     pool.releaseConnection(conn);
   });
-
-  return res.send({ status: 200, data: data, msg: "成功取得資料庫" });
 });
 router.post("/reserve/review", (req, res) => {
   const { case_id, user_id, helper_id, review_content, star_rating } = req.body;
