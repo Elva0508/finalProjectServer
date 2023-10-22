@@ -356,7 +356,7 @@ router.get("/reserve", (req, res) => {
     }
   );
 });
-router.get("/reserve/review", (req, res) => {
+router.get("/reserve/review", async (req, res) => {
   const { case_id } = req.query;
   conn.execute(
     `SELECT r.*, u.cover_photo, u.name
@@ -367,7 +367,7 @@ router.get("/reserve/review", (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
-        return res.status(500).send("資料庫查詢錯誤");
+        return res.status(500).send("資料庫查詢錯誤x87x87x8x78x7x8x7");
       }
       console.log("374", result);
       if (result.length > 0) {
@@ -378,7 +378,8 @@ router.get("/reserve/review", (req, res) => {
         };
       }
       console.log("381", result[0]);
-      return res.send({ status: 200, data: result[0] });
+      // return res.send({ status: 200, data: result[0] });
+      return res.json({ status: 200, msg: "測試連線" });
     }
   );
 });
