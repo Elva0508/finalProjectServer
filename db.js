@@ -1,13 +1,19 @@
 const mysql = require("mysql2");
 
-const createUnixSocketPool = async (config) => {
-  return mysql.createPool({
-    user: "root", // e.g. 'my-db-user'
-    password: "12345", // e.g. 'my-db-password'
-    database: "cat", // e.g. 'my-database'
-    socketPath: "/cloudsql/numeric-marker-402719:asia-east1:final-project", // e.g. '/cloudsql/project:region:instance'
-    // Specify additional properties here.
-  });
-};
+const connection = mysql.createConnection({
+  user: "bfbd86d6ff241e",
+  port: 3306,
+  password: "919f044c",
+  database: "heroku_26c953979d7734c",
+  database: "us-cdbr-east-06.cleardb.net",
+});
 
-module.exports = createUnixSocketPool;
+connection.connect((err) => {
+  if (err) {
+    console.error("Database Connection Failed");
+    console.log(err);
+  }
+  console.log("~~~~~~~~Database Connection Successfully~~~~~~~~");
+});
+
+module.exports = connection;
