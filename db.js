@@ -1,7 +1,9 @@
 const mysql = require("mysql2");
 
 const connection = mysql.createConnection({
-  host: "/cloudsql/numeric-marker-402719:asia-east1:final-project",
+  extra: {
+    socketPath: "/cloudsql/numeric-marker-402719:asia-east1:final-project",
+  },
   port: 3306,
   user: "root",
   password: "12345",
